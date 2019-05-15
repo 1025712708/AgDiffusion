@@ -1,0 +1,196 @@
+%% 读取原始图片,差减原始图片,单一滤波
+clear;clc
+bg = double(imread('test1.tif'));
+data = double(imread('test2.tif'));
+subData = data-bg;
+figure
+subplot(2,2,1)
+imshow(subData,[-400 400])
+title('差减图');
+colorbar
+subData_med = medfilt2(subData);
+subplot(2,2,2)
+imshow(subData_med,[-400 400])
+title('中值滤波');
+colorbar
+subData_adpmed = adpmedian(subData,7);
+subplot(2,2,3)
+imshow(subData_adpmed,[-400 400])
+title('自适应中值滤波');
+colorbar
+subData_wiener = wiener2(subData,[5 5]);
+subplot(2,2,4)
+imshow(subData,[-400 400])
+title('维纳滤波');
+colorbar
+colormap parula
+figure
+subplot(2,2,1)
+plot(subData(:,160))
+subplot(2,2,2)
+plot(subData_med(:,160))
+subplot(2,2,3)
+plot(subData_adpmed(:,160))
+subplot(2,2,4)
+plot(subData_wiener(:,160))
+%% 读取原始图片,差减原始图片,中值（1），自适应中值（2）和维纳（3）滤波
+clear;clc
+bg = double(imread('test1.tif'));
+data = double(imread('test2.tif'));
+subData = data-bg;
+figure
+subplot(2,2,1)
+imshow(subData,[-200 200])
+title('差减图');
+colorbar
+subData_13 = medfilt2(subData);
+subData_13 = wiener2(subData_13,[5 5]);
+subplot(2,2,2)
+imshow(subData_13,[-200 200])
+title('先中值后维纳');
+colorbar
+subData_23 = adpmedian(subData,7);
+subData_23 = wiener2(subData_23,[5 5]);
+subplot(2,2,3)
+imshow(subData_23,[-200 200])
+title('先自适应中值后维纳');
+colorbar
+subData_31 = wiener2(subData,[5 5]);
+subData_31 = medfilt2(subData_31);
+subplot(2,2,4)
+imshow(subData_31,[-200 200])
+title('先维纳后中值');
+colorbar
+subData_32 = wiener2(subData,[5 5]);
+subData_32 = medfilt2(subData_32);
+subplot(2,2,4)
+imshow(subData_32,[-200 200])
+title('先维纳后中值');
+colorbar
+colormap parula
+% impixelinfo
+figure
+subplot(2,2,1)
+plot(subData(:,160))
+title('差减图')
+xlabel('RowPixel')
+ylabel('Intensity(a.u.)')
+subplot(2,2,2)
+plot(subData_13(:,160))
+title('先中值后维纳');
+xlabel('RowPixel')
+ylabel('Intensity(a.u.)')
+subplot(2,2,3)
+plot(subData_23(:,160))
+title('先自适应中值后维纳');
+xlabel('RowPixel')
+ylabel('Intensity(a.u.)')
+subplot(2,2,4)
+plot(subData_31(:,160))
+title('先维纳后中值');
+xlabel('RowPixel')
+ylabel('Intensity(a.u.)')
+
+%% 读取原始图片,先单一滤波，再差减原始图片
+clear;clc
+bg = double(imread('test1.tif'));
+data = double(imread('test2.tif'));
+subData = data-bg;
+figure
+subplot(2,2,1)
+imshow(subData,[-400 400])
+title('差减图');
+colorbar
+bg_med = medfilt2(bg);
+data_med = medfilt2(data);
+subData_med = data_med-bg_med;
+subplot(2,2,2)
+imshow(subData_med,[-400 400])
+title('中值滤波后差减');
+colorbar
+bg_adpmed = adpmedian(bg,7);
+data_adpmed = adpmedian(data,7);
+subData_adpmed = data_adpmed-bg_adpmed;
+subplot(2,2,3)
+imshow(subData_adpmed,[-400 400])
+title('自适应中值滤波后差减');
+colorbar
+bg_wiener = wiener2(bg,[5 5]);
+data_wiener = wiener2(data,[5 5]);
+subData_wiener = data_wiener-bg_wiener;
+subplot(2,2,4)
+imshow(subData_wiener,[-400 400])
+title('维纳滤波后差减');
+colorbar
+colormap parula
+figure
+subplot(2,2,1)
+plot(subData(:,160))
+subplot(2,2,2)
+plot(subData_med(:,160))
+subplot(2,2,3)
+plot(subData_adpmed(:,160))
+subplot(2,2,4)
+plot(subData_wiener(:,160))
+
+%% 读取原始图片,先中值（1），自适应中值（2）和维纳（3）滤波，再差减原始图片
+clear;clc
+bg = double(imread('test1.tif'));
+data = double(imread('test2.tif'));
+subData = data-bg;
+figure
+subplot(2,2,1)
+imshow(subData,[-200 200])
+title('差减图');
+colorbar
+bg_13 = medfilt2(bg);
+bg_13 = wiener2(bg_13,[5 5]);
+data_13 = medfilt2(data);
+data_13 = wiener2(data_13,[5 5]);
+subData_13 = data_13-bg_13;
+subplot(2,2,2)
+imshow(subData_13,[-200 200])
+title('先中值维纳滤波后差减');
+colorbar
+bg_23 = adpmedian(bg,7);
+bg_23 = wiener2(bg_23,[5 5]);
+data_23 = adpmedian(data,7);
+data_23 = wiener2(data_23,[5 5]);
+subData_23 = data_23-bg_23;
+subplot(2,2,3)
+imshow(subData_23,[-200 200])
+title('先自适应中值维纳滤波后差减');
+colorbar
+bg_31 = wiener2(bg,[5 5]);
+bg_31 = medfilt2(bg_31);
+data_31 = wiener2(data,[5 5]);
+data_31 = medfilt2(data_31);
+subData_31 = data_31-bg_31;
+subplot(2,2,4)
+imshow(subData_31,[-200 200])
+title('先维纳中值滤波后差减');
+colorbar
+colormap parula
+figure
+subplot(2,2,1)
+plot(subData(:,160))
+title('差减图')
+xlabel('RowPixel')
+ylabel('Intensity(a.u.)')
+subplot(2,2,2)
+plot(subData_13(:,160))
+title('先中值维纳滤波后差减');
+xlabel('RowPixel')
+ylabel('Intensity(a.u.)')
+subplot(2,2,3)
+plot(subData_23(:,160))
+title('先自适应中值维纳滤波后差减');
+xlabel('RowPixel')
+ylabel('Intensity(a.u.)')
+subplot(2,2,4)
+plot(subData_31(:,160))
+title('先维纳中值滤波后差减');
+xlabel('RowPixel')
+ylabel('Intensity(a.u.)')
+
+
