@@ -1,0 +1,110 @@
+function  showTifSequence(data,varargin)
+% showTifSequence.m     %显示图片序列的图像及鼠标点击像素点的强度随时间的变化
+% data       %输入的图像序列，三维数组形式，第一维是图片张数
+% varargin   %变长度输入参数，可输入采样速率Fs
+
+% Hai-Bo Chen 创建于2019-5-19
+[imNum,row,column] = size(data);  %读取图片序列的张数，高，宽
+option.imNum = imNum;       %图片张数
+option.xaxis = 1:column;    %图片所在x轴，以pixel为单位
+option.yaxis = 1:row;       %图片所在y轴，以pixel为单位
+option.cMax = max(data(:));  %图片colorbar的最大值
+option.cMin = min(data(:));  %图片colorar的最小值
+if nargin > 1;
+    option.Fs = varargin{1};       %采样速率
+    option.time = linspace(0,imNum/option.Fs,imNum)';    %图片序列对应时间
+end
+global px py slide
+px = 1;
+py = 1;
+slide = 1;
+drawTif(data,option);      %显示图片
+drawPlot(data,option);    %显示单像素点的强度时间图
+disp('%%%%% Left click on the above image for pixel positon %%%%%')
+disp('%%%%% Right click on the figure below for image number %%%%%')
+disp('%%%%% Scroll mouse for accurate image number %%%%%')
+set(gcf,'WindowButtonDownFcn',{@buttonDownFcn,data,option});   %进行鼠标点击回调
+set(gcf,'WindowScrollWheelFcn',{@scrollWheelFcn,data,option});  %进行鼠标滚动回调
+end
+
+% 显示图片函数
+function drawTif(data,option)
+global px py slide
+pos1 = [0.15 0.55 0.8 0.35];
+subplot('position',pos1);
+temp = squeeze(data(slide,:,:));
+imagesc(option.xaxis,option.yaxis,temp,[option.cMin option.cMax]);
+title(['Slide ',num2str(slide),' x: ',num2str(option.xaxis(px)),' y: ',num2str(option.yaxis(py))]);
+c = colorbar;
+title(c,'Intensity (a.u.)')
+hold on
+plot(option.xaxis(px),option.yaxis(py),'ro');     %对应图像中鼠标点击的像素点
+hold off
+end
+
+%绘制单像素点强度随时间变化图函数
+function drawPlot(data,option)
+global px py slide
+showData(:,1) = data(:,py,px);    %单像素点随时间的强度向量
+pos2 = [0.15 0.1 0.75 0.35];
+subplot('position',pos2);
+if isfield(option,'time')   %判断是否存在option.time的字段
+    plot(option.time,showData);
+    xlabel('Time (s)')
+    ylabel('Intensity (a.u.)')
+    axis([1 max(option.time) option.cMin option.cMax]);
+else
+    plot(showData)
+    xlabel('imageNum')
+    ylabel('Intensity (a.u.)')
+    axis([1 option.imNum option.cMin option.cMax]);
+end
+legend('Single pixel');
+hold on
+if isfield(option,'time')
+   plot(option.time(slide),showData(slide),'ko');   %对应图像序列中鼠标点击的像素点在某一时刻的强度
+else
+    plot(slide,showData(slide),'ko');    
+end
+hold off
+end
+
+%鼠标滚动回调函数
+function scrollWheelFcn(~,event,data,option)
+global slide
+slide = event.VerticalScrollCount + slide;  %表示滚轮点击的方向和数量。向下滚动返回正值。向上滚动返回负值,值为 1 或 -1
+if slide < 1
+    slide = 1;
+elseif slide > size(data,1)
+    slide = size(data,1);
+end
+try
+    drawTif(data,option);
+    drawPlot(data,option);
+catch
+    disp('Position Error, or right/left click?');
+end
+end
+
+%鼠标点击回调函数
+function buttonDownFcn(~,~,data,option)
+global px py slide
+pt = get(gca,'CurrentPoint');    %获取最近一次点击的位置，返回一个2x3的矩阵，矩阵的每行代表一个点的坐标
+x = pt(1,1);  %x坐标 返回的坐标是以坐标系的数据为单位
+y = pt(1,2);  %y坐标 返回的坐标是以坐标系的数据为单位
+if strcmp(get(gcf,'SelectionType'),'normal');  % left click
+    px = round(x);py = round(y);
+elseif strcmp(get(gcf,'SelectionType'),'alt')  %right click
+    switch isfield(option,'time')
+        case 0
+            slide = round(x);
+        case 1
+            x1 = x*option.Fs; 
+            slide = round(x1);
+    end
+end
+    drawTif(data,option);
+    drawPlot(data,option);
+end
+
+
